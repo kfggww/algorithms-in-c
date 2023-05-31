@@ -4,8 +4,8 @@ VERSION := 0.0.1
 BUILD_TYPE ?= Debug
 BUILD_DIR := build
 
-algc_srcs := src/kmp.c
-algc_tests_srcs := tests/algc-test-string.c
+algc_srcs := src/kmp.c src/rbtree.c
+algc_tests_srcs := tests/algc-test-string.c tests/algc-test-rbtree.c
 
 algc_objs := $(algc_srcs:%.c=$(BUILD_DIR)/%.o)
 algc_tests_objs := $(algc_tests_srcs:%.c=$(BUILD_DIR)/%.o)
@@ -37,7 +37,7 @@ $(BUILD_DIR)/%.o: %.c
 
 %: %.o
 	mkdir -p $(dir $@)
-	$(CC) $(LDFLAGS) -o $@ $^
+	$(CC) $^ $(LDFLAGS) -o $@
 
 clean:
 	rm -rf $(algc_objs) $(algc_tests_objs) $(algc_lib) $(algc_tests)
