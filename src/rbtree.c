@@ -197,6 +197,7 @@ static RBTNode *rbtnode_insert(int val, RBTNode *root)
             if (is_black(p))
             {
                 rotate_left(v, p, g);
+                v->color = kBlack;
                 p->color = kRed;
                 need_rebalance = 0;
             }
