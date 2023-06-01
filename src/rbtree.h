@@ -8,5 +8,6 @@ void rbtree_free(struct RBTree *tree);
 void rbtree_insert(int val, struct RBTree *tree);
 int rbtree_find(int val, struct RBTree *tree);
 void rbtree_remove(int val, struct RBTree *tree);
+int rbtree_check(struct RBTree *tree);
 
 #endif

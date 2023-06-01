@@ -104,8 +104,12 @@ static void rotate_left(RBTNode *v, RBTNode *p, RBTNode *g)
 
     int is_left = is_left_child(p);
 
+    if (v->left != NULL)
+        v->left->parent = p;
+
     p->right = v->left;
     p->parent = v;
+
     v->left = p;
     v->parent = g;
 
@@ -120,13 +124,17 @@ static void rotate_left(RBTNode *v, RBTNode *p, RBTNode *g)
 
 static void rotate_right(RBTNode *v, RBTNode *p, RBTNode *g)
 {
-    if (v == NULL || p == NULL || p->right != v || p->parent != g)
+    if (v == NULL || p == NULL || p->left != v || p->parent != g)
         return;
 
     int is_left = is_left_child(p);
 
+    if (v->right != NULL)
+        v->right->parent = p;
+
     p->left = v->right;
     p->parent = v;
+
     v->right = p;
     v->parent = g;
 
@@ -231,6 +239,203 @@ static RBTNode *rbtnode_insert(int val, RBTNode *root)
     return v;
 }
 
+static RBTNode *min(RBTNode *root)
+{
+    while (root != NULL && root->left != NULL)
+    {
+        root = root->left;
+    }
+
+    return root;
+}
+
+static RBTNode *max(RBTNode *root)
+{
+    while (root != NULL && root->right != NULL)
+    {
+        root = root->right;
+    }
+
+    return root;
+}
+
+static RBTNode *rbtnode_remove(int val, RBTNode *root)
+{
+    if (root == NULL)
+        return NULL;
+
+    RBTNode *node = root;
+    while (node != NULL && val != node->value)
+    {
+        if (val < node->value)
+        {
+            node = node->left;
+        }
+        else
+        {
+            node = node->right;
+        }
+    }
+    if (node == NULL || val != node->value)
+        return root;
+
+    RBTNode *successor = min(node->right);
+    if (successor == NULL)
+    {
+        successor = max(node->left);
+    }
+
+    RBTNode *v = NULL;
+    RBTNode *s = NULL;
+    RBTNode *j = NULL;
+    RBTNode *p = NULL;
+    RBTNode *g = NULL;
+
+    int need_rebalance = 1;
+    int need_free_v = 1;
+
+    if (successor == NULL)
+    {
+        v = node;
+    }
+    else if (left(successor) == NULL && right(successor) == NULL)
+    {
+        node->value = successor->value;
+        v = successor;
+    }
+    else if (left(successor) == NULL)
+    {
+        node->value = successor->value;
+        successor->value = right(successor)->value;
+        v = right(successor);
+    }
+    else if (right(successor) == NULL)
+    {
+        node->value = successor->value;
+        successor->value = left(successor)->value;
+        v = left(successor);
+    }
+
+    if (is_red(v))
+    {
+        if (is_left_child(v))
+            parent(v)->left = NULL;
+        else if (is_right_child(v))
+            parent(v)->right = NULL;
+
+        if (v != NULL)
+        {
+            free(v);
+        }
+        return root;
+    }
+
+    while (need_rebalance)
+    {
+        p = parent(v);
+        g = parent(p);
+        s = is_left_child(v) ? right(p) : left(p);
+        j = left(s);
+
+        if (need_free_v)
+        {
+            need_free_v = 0;
+            if (is_left_child(v))
+                p->left = NULL;
+            else if (is_right_child(v))
+                p->right = NULL;
+            if (v != NULL)
+            {
+                free(v);
+                v = NULL;
+            }
+        }
+
+        if (p != NULL && is_black(p) && is_black(s) && is_black(j))
+        { /* 2,6 */
+            if (is_right_child(s))
+            {
+                rotate_left(s, p, g);
+                p->color = kRed;
+                v = s;
+            }
+            else
+            {
+                s->color = kRed;
+                v = p;
+            }
+        }
+        else if (is_red(p) && is_black(s) && is_black(j))
+        { /* 4,7 */
+            if (is_right_child(s))
+            {
+                rotate_left(s, p, g);
+                v = s;
+            }
+            else
+            {
+                s->color = kRed;
+                p->color = kBlack;
+                v = p;
+            }
+            need_rebalance = 0;
+        }
+        else if (is_black(p) && is_black(s) && is_red(j))
+        { /* 3,9 */
+            if (is_right_child(s))
+            {
+                rotate_right(j, s, p);
+                rotate_left(j, p, g);
+                j->color = kBlack;
+                v = j;
+            }
+            else
+            {
+                rotate_right(s, p, g);
+                j->color = kBlack;
+                v = s;
+            }
+            need_rebalance = 0;
+        }
+        else if (is_black(p) && is_red(s))
+        { /* 8 */
+            rotate_right(s, p, g);
+            left(p)->color = kRed;
+            need_rebalance = 0;
+        }
+        else if (is_red(p) && is_red(j))
+        { /* 5,10 */
+            if (is_right_child(s))
+            {
+                rotate_right(j, s, p);
+                rotate_left(j, p, g);
+                p->color = kBlack;
+                v = j;
+            }
+            else
+            {
+                rotate_right(s, p, g);
+                s->color = kRed;
+                j->color = kBlack;
+                p->color = kBlack;
+                v = s;
+            }
+        }
+
+        if (v == NULL || v->parent == NULL)
+            need_rebalance = 0;
+    }
+
+    while (v != NULL && v->parent != NULL)
+    {
+        v = v->parent;
+    }
+    if (is_red(v))
+        v->color = kBlack;
+
+    return v;
+}
+
 struct RBTree *rbtree_new()
 {
     struct RBTree *tree = malloc(sizeof(*tree));
@@ -256,4 +461,24 @@ int rbtree_find(int val, struct RBTree *tree)
 
 void rbtree_remove(int val, struct RBTree *tree)
 {
+    tree->root = rbtnode_remove(val, tree->root);
+}
+
+int rbtnode_check(RBTNode *root)
+{
+    if (root == NULL)
+        return 0;
+
+    RBTNode *l = left(root);
+    RBTNode *r = right(root);
+
+    if ((l != NULL && l->parent != root) || (r != NULL && r->parent != root))
+        return 1;
+
+    return rbtnode_check(l) || rbtnode_check(r);
+}
+
+int rbtree_check(RBTree *tree)
+{
+    return rbtnode_check(tree != NULL ? tree->root : NULL);
 }
