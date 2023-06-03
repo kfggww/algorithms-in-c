@@ -26,7 +26,7 @@ algc_tests := $(algc_tests_objs:%.o=%)
 
 LDFLAGS :=
 $(algc_lib): LDFLAGS += -shared
-$(algc_tests): LDFLAGS += -L$(BUILD_DIR)/src -lalgc -Wl,-rpath=$(BUILD_DIR)/src
+$(algc_tests): LDFLAGS += -L$(BUILD_DIR)/src -lalgc -Wl,-rpath $(BUILD_DIR)/src
 
 all: $(algc_lib) $(algc_tests)
 	cp script/* $(BUILD_DIR)/tests
