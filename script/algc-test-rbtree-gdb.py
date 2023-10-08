@@ -45,8 +45,5 @@ class PrintRBT(gdb.Command):
         with open("/tmp/rbt.dot", "w") as f:
             f.write(dot_cmd)
 
-        os.system("dot -Tsvg /tmp/rbt.dot > /tmp/rbt.svg")
-        os.system("xdg-open /tmp/rbt.svg")
-
 
 PrintRBT()
