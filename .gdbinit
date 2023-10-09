@@ -1,3 +1,5 @@
+source build/tests/algc-test-rbtree-gdb.py
+
 layout src
 b 15
 b 24
@@ -21,5 +23,7 @@ print-rbt *tree->root
 end
 
 r
+
+!dot -Txlib /tmp/rbt.dot &
 
 display v
